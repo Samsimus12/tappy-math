@@ -1,0 +1,226 @@
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+
+export default function ResultsScreen({ result, onPlayAgain, onHome }) {
+  const { roundScore, totalScore, targetNumber, correctFound, totalCorrect, wrongTaps, missedEquations, equationsSolved, mode } = result;
+  const isSurvival = mode === 'survival';
+  const accuracy = totalCorrect > 0 ? Math.round((correctFound / totalCorrect) * 100) : 0;
+
+  let grade, gradeColor;
+  if (isSurvival) {
+    const solved = equationsSolved ?? 0;
+    if (solved >= 10)      { grade = 'Incredible!';   gradeColor = '#22c55e'; }
+    else if (solved >= 5)  { grade = 'Great run!';    gradeColor = '#f59e0b'; }
+    else if (solved >= 2)  { grade = 'Good effort!';  gradeColor = '#6366f1'; }
+    else                   { grade = 'Keep going!';   gradeColor = '#ef4444'; }
+  } else {
+    if (accuracy >= 80)      { grade = 'So close!';      gradeColor = '#f59e0b'; }
+    else if (accuracy >= 60) { grade = 'Good effort!';   gradeColor = '#6366f1'; }
+    else if (accuracy >= 40) { grade = 'Keep trying!';   gradeColor = '#fb923c'; }
+    else                     { grade = 'Practice more!'; gradeColor = '#ef4444'; }
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.topSection}>
+          <Text style={styles.heading}>Time's Up!</Text>
+          <Text style={[styles.grade, { color: gradeColor }]}>{grade}</Text>
+        </View>
+
+        <View style={styles.scoreBox}>
+          <Text style={styles.scoreLabel}>Total Score</Text>
+          <Text style={styles.scoreValue}>{totalScore}</Text>
+          {roundScore > 0 && (
+            <Text style={styles.roundScoreNote}>+{roundScore} this round</Text>
+          )}
+        </View>
+
+        <View style={styles.statsGrid}>
+          {isSurvival && <StatTile label="Numbers Solved" value={equationsSolved ?? 0} wide />}
+          <StatTile label="Last Number" value={targetNumber} wide={!isSurvival} />
+          <StatTile label="Equations Found" value={`${correctFound} / ${totalCorrect}`} />
+          <StatTile label="Accuracy" value={`${accuracy}%`} />
+          <StatTile label="Wrong Taps" value={wrongTaps} />
+        </View>
+
+        {missedEquations.length > 0 && (
+          <View style={styles.missedBox}>
+            <Text style={styles.missedHeading}>Equations you missed</Text>
+            <View style={styles.missedList}>
+              {missedEquations.map((eq, i) => (
+                <View key={i} style={styles.missedChip}>
+                  <Text style={styles.missedEq}>{eq}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.playBtn} onPress={onPlayAgain} activeOpacity={0.85}>
+            <Text style={styles.playBtnText}>Play Again</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.homeBtn} onPress={onHome} activeOpacity={0.7}>
+            <Text style={styles.homeBtnText}>Back to Home</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function StatTile({ label, value, wide }) {
+  return (
+    <View style={[styles.tile, wide && styles.tileWide]}>
+      <Text style={styles.tileValue}>{value}</Text>
+      <Text style={styles.tileLabel}>{label}</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f0f2e',
+  },
+  content: {
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 32,
+    gap: 20,
+  },
+  topSection: {
+    alignItems: 'center',
+  },
+  heading: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  grade: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  scoreBox: {
+    backgroundColor: '#1e1e4a',
+    borderRadius: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 48,
+    alignItems: 'center',
+    width: '100%',
+  },
+  scoreLabel: {
+    color: '#a5b4fc',
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  scoreValue: {
+    color: '#fbbf24',
+    fontSize: 48,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+  roundScoreNote: {
+    color: '#a5b4fc',
+    fontSize: 12,
+    marginTop: 2,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  tile: {
+    backgroundColor: '#1e1e4a',
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    minWidth: '45%',
+  },
+  tileWide: {
+    width: '100%',
+  },
+  tileValue: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  tileLabel: {
+    color: '#a5b4fc',
+    fontSize: 11,
+    marginTop: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  missedBox: {
+    width: '100%',
+    backgroundColor: '#1e1e4a',
+    borderRadius: 16,
+    padding: 14,
+  },
+  missedHeading: {
+    color: '#ef4444',
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  missedList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  missedChip: {
+    backgroundColor: '#2d1f3a',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: '#ef4444',
+  },
+  missedEq: {
+    color: '#fca5a5',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  actions: {
+    alignItems: 'center',
+    gap: 4,
+    width: '100%',
+  },
+  playBtn: {
+    backgroundColor: '#6366f1',
+    paddingVertical: 15,
+    paddingHorizontal: 64,
+    borderRadius: 50,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.55,
+    shadowRadius: 14,
+    elevation: 10,
+  },
+  playBtnText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  homeBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 32,
+  },
+  homeBtnText: {
+    color: '#a5b4fc',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+});
