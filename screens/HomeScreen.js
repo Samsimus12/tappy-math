@@ -1,19 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions, Animated, Easing, Modal } from 'react-native';
-import { DIFFICULTY } from '../constants/difficulty';
+import { GRADES, GRADE_KEYS } from '../constants/difficulty';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
 const BG_ITEMS = [
-  '2 + 3', '7 × 4', '15 − 8', '36 ÷ 6', '42', '7', '13', '99', '5 + 5',
-  '3 × 3', '100 ÷ 10', '11 + 8', '20 − 7', '6 × 6', '50 ÷ 2', '13 + 7',
-  '8 × 8', '77', '3 + 4', '9 × 9', '81 ÷ 9', '30 + 12', '25 − 11',
-  '4 × 7', '16 + 16', '64 ÷ 8', '19', '37', '2 × 9', '100',
-  '12 × 3', '45 − 9', '24 ÷ 4', '6 + 7', '88', '18 + 6',
-  '5 × 5', '3 + 8', '50', '10 × 10', '44 ÷ 4',
+  '2 + 3', '7 × 4', '15 − 8', '5 + 5', '3 × 3', '11 + 8', '6 × 6',
+  '8 × 8', '3 + 4', '9 × 9', '6 + 7', '3 + 8', '10 × 10', '4 + 6',
+  '2 + 7', '9 + 1', '5 × 4', '12 ÷ 4', '2 + 2', '10 − 3', '8 + 8',
+  '★', '✦', '♥', '◆', '✿', '★', '✦', '♥',
 ];
 
-function BgItem({ label, x, y, fontSize, opacity }) {
+const BG_COLORS = [
+  '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFD93D',
+  '#C7A4FF', '#FF8E53', '#6BCB77', '#F7A072',
+];
+
+function BgItem({ label, x, y, fontSize, opacity, color }) {
   const driftY = useRef(new Animated.Value(0)).current;
   const driftX = useRef(new Animated.Value(0)).current;
 
@@ -42,10 +45,10 @@ function BgItem({ label, x, y, fontSize, opacity }) {
         position: 'absolute',
         left: x,
         top: y,
-        color: '#a5b4fc',
+        color,
         opacity,
         fontSize,
-        fontWeight: '700',
+        fontWeight: '800',
         transform: [{ translateX: driftX }, { translateY: driftY }],
       }}
     >
@@ -56,12 +59,13 @@ function BgItem({ label, x, y, fontSize, opacity }) {
 
 function FloatingBackground() {
   const items = useRef(
-    BG_ITEMS.map(label => ({
+    BG_ITEMS.map((label, i) => ({
       label,
       x: Math.random() * (SW - 120),
       y: Math.random() * (SH - 40),
-      fontSize: 12 + Math.random() * 9,
-      opacity: 0.04 + Math.random() * 0.07,
+      fontSize: 13 + Math.random() * 10,
+      opacity: 0.08 + Math.random() * 0.10,
+      color: BG_COLORS[i % BG_COLORS.length],
     }))
   ).current;
 
@@ -75,18 +79,19 @@ function FloatingBackground() {
 }
 
 const MODES = [
-  { key: 'normal',   label: 'Standard',      icon: '🎯', sub: 'Find all equations before time runs out' },
-  { key: 'survival', label: 'Survival',       icon: '⚡', sub: 'Solve numbers to add time · wrong taps cost 5s' },
-  { key: 'falling',  label: 'Falling Equations', icon: '🌊', sub: 'Tap equations as they fall' },
+  { key: 'normal',   label: 'Standard',   icon: '🎯', sub: 'Find all equations before time runs out!' },
+  { key: 'survival', label: 'Survival',   icon: '⚡', sub: 'Right answer = +20s · Wrong tap = −5s' },
+  { key: 'falling',  label: 'Falling Numbers', icon: '🌊', sub: 'Tap the equations as they fall down!' },
 ];
 
 export default function HomeScreen({ onPlay, sfxEnabled, musicEnabled, onToggleSfx, onToggleMusic }) {
-  const [selected, setSelected] = useState('medium');
+  const [gradeIndex, setGradeIndex] = useState(3); // default: 3rd grade
   const [modeIndex, setModeIndex] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
-  const diff = DIFFICULTY[selected];
+  const gradeKey = GRADE_KEYS[gradeIndex];
+  const grade = GRADES[gradeKey];
   const currentMode = MODES[modeIndex];
-  const modeColor = diff.color;
+  const modeColor = grade.color;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -100,34 +105,38 @@ export default function HomeScreen({ onPlay, sfxEnabled, musicEnabled, onToggleS
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title}>Tappy{'\n'}Math</Text>
-        <Text style={styles.subtitle}>Find equations that equal the target!</Text>
+        <Text style={styles.title}>Tappy{'\n'}Math!</Text>
+        <Text style={styles.subtitle}>Find equations equal to the target number!</Text>
 
-        <Text style={styles.sectionLabel}>Difficulty</Text>
-        <View style={styles.diffRow}>
-          {Object.entries(DIFFICULTY).map(([key, d]) => (
-            <TouchableOpacity
-              key={key}
-              style={[
-                styles.diffBtn,
-                { borderColor: d.color },
-                selected === key && { backgroundColor: d.color },
-              ]}
-              onPress={() => setSelected(key)}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.diffBtnText, selected === key && styles.diffBtnTextActive]}>
-                {d.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        <Text style={styles.sectionLabel}>📚 Grade Level</Text>
+        <View style={[styles.gradeSelector, { borderColor: grade.color }]}>
+          <TouchableOpacity
+            onPress={() => setGradeIndex(i => Math.max(0, i - 1))}
+            hitSlop={16}
+            activeOpacity={gradeIndex === 0 ? 0.2 : 0.6}
+          >
+            <Text style={[styles.gradeArrow, { color: gradeIndex === 0 ? '#D9CFC4' : grade.color }]}>‹</Text>
+          </TouchableOpacity>
+          <View style={styles.gradeCard}>
+            <Text style={[styles.gradeName, { color: grade.color }]}>{grade.label}</Text>
+            <Text style={styles.gradeSkill}>{grade.skillDesc}</Text>
+            <Text style={styles.gradeTimer}>⏱ {grade.duration}s</Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => setGradeIndex(i => Math.min(GRADE_KEYS.length - 1, i + 1))}
+            hitSlop={16}
+            activeOpacity={gradeIndex === GRADE_KEYS.length - 1 ? 0.2 : 0.6}
+          >
+            <Text style={[styles.gradeArrow, { color: gradeIndex === GRADE_KEYS.length - 1 ? '#D9CFC4' : grade.color }]}>›</Text>
+          </TouchableOpacity>
         </View>
+        <Text style={styles.gradeProgress}>{gradeIndex + 1} of {GRADE_KEYS.length}</Text>
 
-        <Text style={styles.sectionLabel}>Mode</Text>
+        <Text style={styles.sectionLabel}>🎮 Game Mode</Text>
         <View style={[styles.modeSelector, { borderColor: modeColor }]}>
           <TouchableOpacity
             onPress={() => setModeIndex(i => (i + MODES.length - 1) % MODES.length)}
-            hitSlop={12}
+            hitSlop={16}
             activeOpacity={0.6}
           >
             <Text style={[styles.modeArrow, { color: modeColor }]}>‹</Text>
@@ -139,7 +148,7 @@ export default function HomeScreen({ onPlay, sfxEnabled, musicEnabled, onToggleS
           </View>
           <TouchableOpacity
             onPress={() => setModeIndex(i => (i + 1) % MODES.length)}
-            hitSlop={12}
+            hitSlop={16}
             activeOpacity={0.6}
           >
             <Text style={[styles.modeArrow, { color: modeColor }]}>›</Text>
@@ -153,17 +162,17 @@ export default function HomeScreen({ onPlay, sfxEnabled, musicEnabled, onToggleS
 
         <TouchableOpacity
           style={[styles.playBtn, { backgroundColor: modeColor, shadowColor: modeColor }]}
-          onPress={() => onPlay(selected, currentMode.key)}
+          onPress={() => onPlay(gradeKey, currentMode.key)}
           activeOpacity={0.85}
         >
-          <Text style={styles.playBtnText}>Play</Text>
+          <Text style={styles.playBtnText}>▶  Play!</Text>
         </TouchableOpacity>
       </View>
 
       <Modal visible={showSettings} transparent animationType="fade">
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowSettings(false)}>
           <View style={styles.settingsModal} onStartShouldSetResponder={() => true}>
-            <Text style={styles.settingsModalTitle}>Settings</Text>
+            <Text style={styles.settingsModalTitle}>⚙️ Settings</Text>
 
             <TouchableOpacity
               style={[styles.settingsToggle, sfxEnabled && styles.settingsToggleOn]}
@@ -198,7 +207,7 @@ export default function HomeScreen({ onPlay, sfxEnabled, musicEnabled, onToggleS
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.settingsDoneBtn} onPress={() => setShowSettings(false)} activeOpacity={0.8}>
-              <Text style={styles.settingsDoneText}>Done</Text>
+              <Text style={styles.settingsDoneText}>Done ✓</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -210,7 +219,7 @@ export default function HomeScreen({ onPlay, sfxEnabled, musicEnabled, onToggleS
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f2e',
+    backgroundColor: '#FFF6E3',
   },
   topBar: {
     flexDirection: 'row',
@@ -238,64 +247,86 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 52,
     fontWeight: '800',
-    color: '#fff',
+    color: '#FF7043',
     textAlign: 'center',
-    letterSpacing: 1,
-    lineHeight: 58,
-    marginBottom: 12,
+    lineHeight: 60,
+    marginBottom: 10,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#a5b4fc',
+    fontSize: 15,
+    color: '#7B6B5A',
     textAlign: 'center',
-    marginBottom: 36,
+    marginBottom: 32,
+    fontWeight: '600',
   },
   sectionLabel: {
-    color: '#a5b4fc',
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    color: '#5A4A3A',
+    fontSize: 14,
+    fontWeight: '800',
     marginBottom: 12,
   },
-  diffRow: {
+  gradeSelector: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 28,
+    alignItems: 'center',
     width: '100%',
+    borderWidth: 2.5,
+    borderRadius: 22,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    marginBottom: 6,
+    backgroundColor: '#FFFFFF',
   },
-  diffBtn: {
+  gradeArrow: {
+    fontSize: 36,
+    fontWeight: '700',
+    lineHeight: 40,
+    width: 28,
+    textAlign: 'center',
+  },
+  gradeCard: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 12,
-    borderRadius: 14,
-    borderWidth: 2,
-    backgroundColor: 'transparent',
+    gap: 3,
   },
-  diffBtnText: {
-    color: '#e0e7ff',
-    fontSize: 15,
-    fontWeight: '700',
+  gradeName: {
+    fontSize: 20,
+    fontWeight: '800',
   },
-  diffBtnTextActive: {
-    color: '#fff',
+  gradeSkill: {
+    color: '#7B6B5A',
+    fontSize: 12,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  gradeTimer: {
+    color: '#7B6B5A',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  gradeProgress: {
+    color: '#B0A090',
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 20,
   },
   modeSelector: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    borderWidth: 2,
-    borderRadius: 20,
+    borderWidth: 2.5,
+    borderRadius: 22,
     paddingVertical: 16,
     paddingHorizontal: 12,
     marginBottom: 10,
     gap: 8,
+    backgroundColor: '#FFFFFF',
   },
   modeArrow: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: '700',
-    lineHeight: 36,
-    width: 24,
+    lineHeight: 40,
+    width: 28,
     textAlign: 'center',
   },
   modeCard: {
@@ -304,17 +335,18 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   modeIcon: {
-    fontSize: 28,
+    fontSize: 30,
   },
   modeName: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
   modeSub: {
-    color: '#a5b4fc',
+    color: '#7B6B5A',
     fontSize: 12,
     textAlign: 'center',
+    fontWeight: '600',
   },
   modeDots: {
     flexDirection: 'row',
@@ -322,44 +354,49 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   modeDot: {
-    width: 7,
-    height: 7,
+    width: 8,
+    height: 8,
     borderRadius: 4,
-    backgroundColor: '#2d2d6e',
+    backgroundColor: '#D9CFC4',
   },
   playBtn: {
     width: '100%',
-    paddingVertical: 18,
+    paddingVertical: 20,
     borderRadius: 50,
     alignItems: 'center',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.55,
+    shadowOpacity: 0.45,
     shadowRadius: 14,
     elevation: 10,
   },
   playBtnText: {
     color: '#fff',
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 24,
+    fontWeight: '800',
     letterSpacing: 1,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: 'rgba(0,0,0,0.45)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   settingsModal: {
     width: '82%',
-    backgroundColor: '#1e1e4a',
-    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28,
     paddingVertical: 28,
     paddingHorizontal: 24,
     gap: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 12,
   },
   settingsModalTitle: {
-    color: '#fff',
-    fontSize: 20,
+    color: '#2C2C2C',
+    fontSize: 22,
     fontWeight: '800',
     textAlign: 'center',
     marginBottom: 4,
@@ -368,14 +405,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderWidth: 1.5,
-    borderColor: '#2d2d6e',
-    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#E8DDD2',
+    borderRadius: 18,
     paddingVertical: 14,
     paddingHorizontal: 16,
+    backgroundColor: '#FAFAFA',
   },
   settingsToggleOn: {
-    borderColor: '#6366f1',
+    borderColor: '#FF7043',
+    backgroundColor: '#FFF6F3',
   },
   settingsToggleLeft: {
     flexDirection: 'row',
@@ -386,23 +425,23 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   settingsToggleLabel: {
-    color: '#e0e7ff',
+    color: '#2C2C2C',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   pill: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
     borderRadius: 20,
-    backgroundColor: '#2d2d6e',
+    backgroundColor: '#E8DDD2',
   },
   pillOn: {
-    backgroundColor: '#6366f1',
+    backgroundColor: '#FF7043',
   },
   pillText: {
-    color: '#6b7280',
+    color: '#7B6B5A',
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: 0.5,
   },
   pillTextOn: {
@@ -413,10 +452,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 32,
     marginTop: 4,
+    backgroundColor: '#FF7043',
+    borderRadius: 50,
   },
   settingsDoneText: {
-    color: '#6366f1',
+    color: '#fff',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });

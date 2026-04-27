@@ -15,7 +15,7 @@ export default function App() {
   const [totalScore, setTotalScore] = useState(0);
   const [lastResult, setLastResult] = useState(null);
   const [result, setResult] = useState(null);
-  const [difficulty, setDifficulty] = useState('medium');
+  const [difficulty, setDifficulty] = useState('3');
   const [mode, setMode] = useState('normal');
 
   useEffect(() => {
@@ -103,7 +103,7 @@ export default function App() {
 
   return (
     <>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       {screen === 'home' && (
         <HomeScreen
           onPlay={handlePlay}

@@ -9,27 +9,27 @@ export default function ResultsScreen({ result, onPlayAgain, onHome }) {
   let grade, gradeColor;
   if (isSurvival) {
     const solved = equationsSolved ?? 0;
-    if (solved >= 10)      { grade = 'Incredible!';   gradeColor = '#22c55e'; }
-    else if (solved >= 5)  { grade = 'Great run!';    gradeColor = '#f59e0b'; }
-    else if (solved >= 2)  { grade = 'Good effort!';  gradeColor = '#6366f1'; }
-    else                   { grade = 'Keep going!';   gradeColor = '#ef4444'; }
+    if (solved >= 10)     { grade = '🏆 Champion!';   gradeColor = '#F39C12'; }
+    else if (solved >= 5) { grade = '⭐ Awesome!';    gradeColor = '#27AE60'; }
+    else if (solved >= 2) { grade = '👍 Good try!';   gradeColor = '#3498DB'; }
+    else                  { grade = '💪 Keep going!'; gradeColor = '#FF7043'; }
   } else {
-    if (accuracy >= 80)      { grade = 'So close!';      gradeColor = '#f59e0b'; }
-    else if (accuracy >= 60) { grade = 'Good effort!';   gradeColor = '#6366f1'; }
-    else if (accuracy >= 40) { grade = 'Keep trying!';   gradeColor = '#fb923c'; }
-    else                     { grade = 'Practice more!'; gradeColor = '#ef4444'; }
+    if (accuracy >= 80)      { grade = '🌟 Amazing!';     gradeColor = '#F39C12'; }
+    else if (accuracy >= 60) { grade = '🎉 Great Job!';   gradeColor = '#27AE60'; }
+    else if (accuracy >= 40) { grade = '👍 Nice Try!';    gradeColor = '#3498DB'; }
+    else                     { grade = '💪 Keep Going!';  gradeColor = '#FF7043'; }
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topSection}>
-          <Text style={styles.heading}>Time's Up!</Text>
+          <Text style={styles.heading}>⏰ Time's Up!</Text>
           <Text style={[styles.grade, { color: gradeColor }]}>{grade}</Text>
         </View>
 
         <View style={styles.scoreBox}>
-          <Text style={styles.scoreLabel}>Total Score</Text>
+          <Text style={styles.scoreLabel}>⭐ Total Score</Text>
           <Text style={styles.scoreValue}>{totalScore}</Text>
           {roundScore > 0 && (
             <Text style={styles.roundScoreNote}>+{roundScore} this round</Text>
@@ -46,7 +46,7 @@ export default function ResultsScreen({ result, onPlayAgain, onHome }) {
 
         {missedEquations.length > 0 && (
           <View style={styles.missedBox}>
-            <Text style={styles.missedHeading}>Equations you missed</Text>
+            <Text style={styles.missedHeading}>❌ Equations you missed</Text>
             <View style={styles.missedList}>
               {missedEquations.map((eq, i) => (
                 <View key={i} style={styles.missedChip}>
@@ -59,7 +59,7 @@ export default function ResultsScreen({ result, onPlayAgain, onHome }) {
 
         <View style={styles.actions}>
           <TouchableOpacity style={styles.playBtn} onPress={onPlayAgain} activeOpacity={0.85}>
-            <Text style={styles.playBtnText}>Play Again</Text>
+            <Text style={styles.playBtnText}>▶ Play Again!</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.homeBtn} onPress={onHome} activeOpacity={0.7}>
             <Text style={styles.homeBtnText}>Back to Home</Text>
@@ -82,7 +82,7 @@ function StatTile({ label, value, wide }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f2e',
+    backgroundColor: '#FFF6E3',
   },
   content: {
     alignItems: 'center',
@@ -95,39 +95,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heading: {
-    fontSize: 32,
+    fontSize: 34,
     fontWeight: '800',
-    color: '#fff',
-    marginBottom: 4,
+    color: '#2C2C2C',
+    marginBottom: 6,
   },
   grade: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: '800',
   },
   scoreBox: {
-    backgroundColor: '#1e1e4a',
-    borderRadius: 20,
-    paddingVertical: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    paddingVertical: 16,
     paddingHorizontal: 48,
     alignItems: 'center',
     width: '100%',
+    shadowColor: '#FF7043',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 4,
   },
   scoreLabel: {
-    color: '#a5b4fc',
-    fontSize: 12,
-    fontWeight: '600',
+    color: '#7B6B5A',
+    fontSize: 13,
+    fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
   scoreValue: {
-    color: '#fbbf24',
-    fontSize: 48,
+    color: '#FF7043',
+    fontSize: 52,
     fontWeight: '800',
     marginTop: 2,
   },
   roundScoreNote: {
-    color: '#a5b4fc',
-    fontSize: 12,
+    color: '#27AE60',
+    fontSize: 13,
+    fontWeight: '700',
     marginTop: 2,
   },
   statsGrid: {
@@ -138,41 +144,50 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   tile: {
-    backgroundColor: '#1e1e4a',
-    borderRadius: 14,
-    paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     alignItems: 'center',
     minWidth: '45%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   tileWide: {
     width: '100%',
   },
   tileValue: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '700',
+    color: '#2C2C2C',
+    fontSize: 22,
+    fontWeight: '800',
   },
   tileLabel: {
-    color: '#a5b4fc',
+    color: '#7B6B5A',
     fontSize: 11,
-    marginTop: 2,
+    marginTop: 3,
+    fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   missedBox: {
     width: '100%',
-    backgroundColor: '#1e1e4a',
-    borderRadius: 16,
-    padding: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 16,
+    shadowColor: '#E74C3C',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.10,
+    shadowRadius: 10,
+    elevation: 3,
   },
   missedHeading: {
-    color: '#ef4444',
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 8,
+    color: '#E74C3C',
+    fontSize: 13,
+    fontWeight: '800',
+    marginBottom: 10,
   },
   missedList: {
     flexDirection: 'row',
@@ -180,17 +195,17 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   missedChip: {
-    backgroundColor: '#2d1f3a',
+    backgroundColor: '#FEF0EE',
     borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderWidth: 1,
-    borderColor: '#ef4444',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderWidth: 2,
+    borderColor: '#E74C3C',
   },
   missedEq: {
-    color: '#fca5a5',
+    color: '#C0392B',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   actions: {
     alignItems: 'center',
@@ -198,29 +213,29 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   playBtn: {
-    backgroundColor: '#6366f1',
-    paddingVertical: 15,
+    backgroundColor: '#FF7043',
+    paddingVertical: 18,
     paddingHorizontal: 64,
     borderRadius: 50,
-    shadowColor: '#6366f1',
+    shadowColor: '#FF7043',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.55,
+    shadowOpacity: 0.45,
     shadowRadius: 14,
     elevation: 10,
   },
   playBtnText: {
     color: '#fff',
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: 1,
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   homeBtn: {
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 32,
   },
   homeBtnText: {
-    color: '#a5b4fc',
-    fontSize: 15,
-    fontWeight: '600',
+    color: '#FF7043',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

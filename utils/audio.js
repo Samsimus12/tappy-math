@@ -10,10 +10,9 @@ const SOUND_FILES = {
 };
 
 const GAME_MUSIC_FILES = [
-  require('../assets/music/Pocket Parade.wav'),
-  require('../assets/music/Tile Tap Loop.wav'),
-  require('../assets/music/Taploop Arcade.wav'),
-  require('../assets/music/Token Pop.wav'),
+  require('../assets/music/Bubble Bean Bounce v1.wav'),
+  require('../assets/music/Bubble Bean Bounce v2.wav'),
+  require('../assets/music/Pixel Parade.wav'),
 ];
 
 let sounds = {};

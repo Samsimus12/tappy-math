@@ -4,7 +4,7 @@ import FloatingEquation from '../components/FloatingEquation';
 import FallingEquation from '../components/FallingEquation';
 import { playSound, startMusic, stopMusic } from '../utils/audio';
 import { generateTarget, buildEquationPool } from '../utils/mathEngine';
-import { DIFFICULTY } from '../constants/difficulty';
+import { GRADES } from '../constants/difficulty';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 const HEADER_H = 130;
@@ -13,6 +13,11 @@ const EQ_AREA_H = SH - HEADER_H - FOOTER_H;
 const EQ_BOUNDS = { width: SW, height: EQ_AREA_H };
 
 const SURVIVAL_START_TIME = 30;
+
+const BUBBLE_COLORS = [
+  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
+  '#FFD93D', '#C7A4FF', '#FF8E53', '#6BCB77',
+];
 
 function ScorePopup({ id, value, onComplete }) {
   const translateY = useRef(new Animated.Value(0)).current;
@@ -37,8 +42,8 @@ function ScorePopup({ id, value, onComplete }) {
         position: 'absolute',
         bottom: 60,
         left: x,
-        color: isPositive ? '#22c55e' : '#ef4444',
-        fontSize: 22,
+        color: isPositive ? '#27AE60' : '#E74C3C',
+        fontSize: 26,
         fontWeight: '800',
         opacity,
         transform: [{ translateY }],
@@ -50,7 +55,7 @@ function ScorePopup({ id, value, onComplete }) {
 }
 
 export default function GameScreen({ onGameEnd, onBack, totalScore, round, difficulty, mode }) {
-  const config = DIFFICULTY[difficulty] ?? DIFFICULTY.medium;
+  const config = GRADES[difficulty] ?? GRADES['3'];
   const isSurvival = mode === 'survival';
   const isFalling = mode === 'falling';
 
@@ -136,9 +141,10 @@ export default function GameScreen({ onGameEnd, onBack, totalScore, round, diffi
     setTargetNumber(target);
     targetNumberRef.current = target;
 
+    const colorPool = [...BUBBLE_COLORS].sort(() => Math.random() - 0.5);
     const all = [
-      ...correct.map((eq, i) => ({ id: `c-${i}-${target}`, equation: eq, isCorrect: true, tapped: false, correct: false })),
-      ...distractors.map((eq, i) => ({ id: `d-${i}-${target}`, equation: eq, isCorrect: false, tapped: false, correct: false })),
+      ...correct.map((eq, i) => ({ id: `c-${i}-${target}`, equation: eq, isCorrect: true, tapped: false, correct: false, color: colorPool[i % colorPool.length] })),
+      ...distractors.map((eq, i) => ({ id: `d-${i}-${target}`, equation: eq, isCorrect: false, tapped: false, correct: false, color: colorPool[(i + correct.length) % colorPool.length] })),
     ].sort(() => Math.random() - 0.5);
 
     setEquations(all);
@@ -193,44 +199,46 @@ export default function GameScreen({ onGameEnd, onBack, totalScore, round, diffi
     setScorePopups(prev => prev.filter(p => p.id !== id));
   }, []);
 
-  const timerColor = timeLeft <= 10 ? '#ef4444' : timeLeft <= 15 ? '#fb923c' : '#fff';
+  const timerColor = timeLeft <= 10 ? '#E74C3C' : timeLeft <= 15 ? '#F39C12' : '#FFFFFF';
   const foundCount = equations.filter(e => e.isCorrect && e.tapped).length;
   const totalCount = equations.filter(e => e.isCorrect).length;
+
+  const headerAccent = isSurvival ? '#C0392B' : isFalling ? '#2980B9' : config.color;
 
   if (equations.length === 0) {
     return (
       <SafeAreaView style={styles.center}>
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.loadingText}>Loading... 🎮</Text>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: headerAccent }]}>
         <View style={styles.statBox}>
           <TouchableOpacity onPress={() => setShowQuitModal(true)} style={styles.backBtn} hitSlop={12}>
             <Text style={styles.backBtnText}>← Back</Text>
           </TouchableOpacity>
-          <Text style={styles.statLabel}>Score</Text>
+          <Text style={styles.statLabel}>⭐ Score</Text>
           <Text style={styles.statValue}>{roundScore}</Text>
         </View>
 
         <View style={styles.targetBox}>
-          <Text style={[styles.roundLabel, { color: isSurvival ? '#f43f5e' : isFalling ? '#22d3ee' : config.color }]}>
+          <Text style={styles.roundLabel}>
             {isSurvival
-              ? `Survival · ${equationsSolved} solved`
+              ? `⚡ Survival · ${equationsSolved} solved`
               : isFalling
-                ? `Falling · Round ${round} · ${config.label}`
-                : `Round ${round} · ${config.label}`}
+                ? `🌊 Falling · Round ${round}`
+                : `🎯 Round ${round} · ${config.label}`}
           </Text>
           <Text style={styles.equalsLabel}>find equations equal to</Text>
           <Text style={styles.targetNum}>{targetNumber}</Text>
-          <Text style={styles.foundCount}>{foundCount} / {totalCount} found</Text>
+          <Text style={styles.foundCount}>{foundCount} / {totalCount} found ✓</Text>
         </View>
 
         <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Time</Text>
+          <Text style={styles.statLabel}>⏱ Time</Text>
           <Text style={[styles.statValue, { color: timerColor }]}>{timeLeft}</Text>
         </View>
       </View>
@@ -247,6 +255,7 @@ export default function GameScreen({ onGameEnd, onBack, totalScore, round, diffi
             screenWidth={SW}
             screenHeight={EQ_AREA_H}
             speedMultiplier={config.speedMultiplier}
+            bubbleColor={e.color}
           />
         ) : (
           <FloatingEquation
@@ -258,6 +267,7 @@ export default function GameScreen({ onGameEnd, onBack, totalScore, round, diffi
             onTap={handleTap}
             bounds={EQ_BOUNDS}
             speedMultiplier={config.speedMultiplier}
+            bubbleColor={e.color}
           />
         ))}
 
@@ -270,7 +280,7 @@ export default function GameScreen({ onGameEnd, onBack, totalScore, round, diffi
                 { opacity: countdownOpacity, transform: [{ scale: countdownScale }] },
               ]}
             >
-              {countdown === 0 ? 'Go!' : countdown}
+              {countdown === 0 ? 'GO! 🚀' : countdown}
             </Animated.Text>
           </View>
         )}
@@ -285,13 +295,13 @@ export default function GameScreen({ onGameEnd, onBack, totalScore, round, diffi
       <Modal visible={showQuitModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Quit round?</Text>
+            <Text style={styles.modalTitle}>Quit round? 😢</Text>
             <Text style={styles.modalSub}>Your progress will be lost.</Text>
             <TouchableOpacity style={styles.modalQuitBtn} onPress={onBack} activeOpacity={0.85}>
               <Text style={styles.modalQuitText}>Quit</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setShowQuitModal(false)} activeOpacity={0.7}>
-              <Text style={styles.modalCancelText}>Keep Playing</Text>
+              <Text style={styles.modalCancelText}>Keep Playing! 💪</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -303,17 +313,18 @@ export default function GameScreen({ onGameEnd, onBack, totalScore, round, diffi
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f2e',
+    backgroundColor: '#FFF6E3',
   },
   center: {
     flex: 1,
-    backgroundColor: '#0f0f2e',
+    backgroundColor: '#FFF6E3',
     alignItems: 'center',
     justifyContent: 'center',
   },
   loadingText: {
-    color: '#a5b4fc',
-    fontSize: 18,
+    color: '#FF7043',
+    fontSize: 20,
+    fontWeight: '700',
   },
   header: {
     height: HEADER_H,
@@ -322,32 +333,30 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 10,
-    backgroundColor: '#1a1a40',
-    borderBottomWidth: 1,
-    borderBottomColor: '#2d2d6e',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   statBox: {
     alignItems: 'center',
-    minWidth: 60,
+    minWidth: 65,
   },
   backBtn: {
     marginBottom: 4,
   },
   backBtnText: {
-    color: '#a5b4fc',
+    color: 'rgba(255,255,255,0.85)',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   statLabel: {
-    color: '#a5b4fc',
+    color: 'rgba(255,255,255,0.9)',
     fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   statValue: {
     color: '#fff',
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: '800',
     marginTop: 2,
   },
@@ -357,28 +366,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   roundLabel: {
+    color: 'rgba(255,255,255,0.9)',
     fontSize: 11,
     fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 0.3,
   },
   equalsLabel: {
-    color: '#a5b4fc',
+    color: 'rgba(255,255,255,0.8)',
     fontSize: 10,
     fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
     marginTop: 2,
   },
   targetNum: {
-    color: '#fbbf24',
-    fontSize: 32,
+    color: '#FFD700',
+    fontSize: 36,
     fontWeight: '800',
     marginTop: 1,
-    lineHeight: 38,
+    lineHeight: 42,
+    textShadowColor: 'rgba(0,0,0,0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   foundCount: {
-    color: '#6ee7b7',
+    color: 'rgba(255,255,255,0.9)',
     fontSize: 11,
     fontWeight: '700',
     marginTop: 2,
@@ -392,58 +402,64 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(15, 15, 46, 0.6)',
+    backgroundColor: 'rgba(255,246,227,0.7)',
   },
   countdownText: {
-    fontSize: 100,
+    fontSize: 110,
     fontWeight: '800',
-    color: '#fff',
+    color: '#FF7043',
   },
   countdownGo: {
     fontSize: 72,
-    color: '#22c55e',
+    color: '#27AE60',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   modalBox: {
-    backgroundColor: '#1e1e4a',
-    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28,
     paddingVertical: 32,
     paddingHorizontal: 32,
     alignItems: 'center',
     width: '78%',
     gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 12,
   },
   modalTitle: {
-    color: '#fff',
-    fontSize: 22,
+    color: '#2C2C2C',
+    fontSize: 24,
     fontWeight: '800',
   },
   modalSub: {
-    color: '#a5b4fc',
+    color: '#7B6B5A',
     fontSize: 14,
+    fontWeight: '600',
     marginBottom: 4,
   },
   modalQuitBtn: {
-    backgroundColor: '#ef4444',
+    backgroundColor: '#E74C3C',
     borderRadius: 50,
     paddingVertical: 14,
     width: '100%',
     alignItems: 'center',
-    shadowColor: '#ef4444',
+    shadowColor: '#E74C3C',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.35,
     shadowRadius: 8,
     elevation: 6,
   },
   modalQuitText: {
     color: '#fff',
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: 0.5,
   },
   modalCancelBtn: {
@@ -451,8 +467,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   modalCancelText: {
-    color: '#a5b4fc',
-    fontSize: 15,
-    fontWeight: '600',
+    color: '#FF7043',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

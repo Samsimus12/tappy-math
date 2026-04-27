@@ -93,7 +93,7 @@ function FallingEquation({ eqId, equation, tapped, correct, onTap, screenWidth, 
 
   const rayTranslate = rayProgress.interpolate({ inputRange: [0, 1], outputRange: [0, -38] });
   const rayOpacity = rayProgress.interpolate({ inputRange: [0, 0.08, 0.7, 1], outputRange: [0, 1, 1, 0] });
-  const bgColor = tapped ? (correct ? '#16a34a' : '#dc2626') : bubbleColor;
+  const bgColor = tapped ? (correct ? '#27AE60' : '#E74C3C') : bubbleColor;
 
   return (
     <Animated.View
@@ -107,7 +107,7 @@ function FallingEquation({ eqId, equation, tapped, correct, onTap, screenWidth, 
           { transform: [{ scale }, { translateX: wrongShakeX }, { translateY: wrongFallY }, { rotate: wrongRotate }] },
         ]}
       >
-        <Pressable onPress={() => onTap(eqId)} disabled={tapped} hitSlop={10}>
+        <Pressable onPress={() => onTap(eqId)} disabled={tapped} hitSlop={14}>
           <Text style={styles.text}>{equation}</Text>
         </Pressable>
       </Animated.View>
@@ -120,9 +120,9 @@ function FallingEquation({ eqId, equation, tapped, correct, onTap, screenWidth, 
             position: 'absolute',
             top: bubbleSizeRef.current.height / 2 - 6,
             left: bubbleSizeRef.current.width / 2 - 1.5,
-            width: 3,
-            height: 12,
-            backgroundColor: '#ffffff',
+            width: 4,
+            height: 14,
+            backgroundColor: '#FFD700',
             borderRadius: 2,
             opacity: rayOpacity,
             transform: [{ rotate: `${angle}deg` }, { translateY: rayTranslate }],
@@ -135,19 +135,19 @@ function FallingEquation({ eqId, equation, tapped, correct, onTap, screenWidth, 
 
 const styles = StyleSheet.create({
   bubble: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 30,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
   },
   text: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
     letterSpacing: 0.5,
   },
 });
